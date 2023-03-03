@@ -54,6 +54,12 @@ mod solearn_contract {
 
         Ok(())
     }
+
+    // pub fn payout(ctx: Context<Payout>) -> Result<()> {
+    //     let employer_account = &mut ctx.accounts.employer_account;
+
+    //     for (employee_address, allocation) in employer
+    // }
 }
 
 #[derive(Accounts)]
@@ -86,5 +92,15 @@ pub struct AddEmployees<'info> {
     #[account(mut)]
     pub employer: Signer<'info>,
 
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Payout<'info> {
+    #[account(mut, has_one = employer)]
+    pub employer_account: Box<Account<'info, Organization>>,
+    pub employer: AccountInfo<'info>,
+
+    #[account(mut)]
     pub system_program: Program<'info, System>,
 }
