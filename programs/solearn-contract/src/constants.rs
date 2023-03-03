@@ -4,4 +4,4 @@ use anchor_lang::prelude::*;
 pub const EMPLOYER_TAG: &[u8] = b"EMPLOYER_STATE";
 
 #[constant]
-pub const EMPLOYEES_TAG: &[u8] = b"EMPLOYEEs_STATE";
+pub const EMPLOYEES_TAG: &[u8] = b"EMPLOYEES_STATE";
