@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::collections::HashMap;
 
 use constants::*;
 use errors::*;
@@ -24,32 +23,26 @@ mod solearn_contract {
 
     pub fn add_employees(
         ctx: Context<AddEmployees>,
-        employees: Vec<Pubkey>,
         amounts: Vec<u64>,
         sol_tokens: u64,
     ) -> Result<()> {
         let employer_account = &mut ctx.accounts.employer_account;
         let payroll_account = &mut ctx.accounts.payroll_account;
+        payroll_account.employer = ctx.accounts.employer.key();
+        let employees = &ctx.remaining_accounts;
 
         let total_amount: u64 = amounts.iter().sum();
         require!(total_amount == sol_tokens, SolEarnError::InsufficientSol);
         require!(
-            employees.len() == amounts.len(),
+            employees.len() as u16 == amounts.len() as u16,
             SolEarnError::InvalidEmployeeAmountCount
         );
 
         employer_account.employee_count = employees.len() as u16;
 
-        let mut employee_allocations = HashMap::new();
         for (i, employee) in employees.iter().enumerate() {
-            employee_allocations.insert(*employee, amounts[i]);
-        }
-
-        for employee in employees {
             payroll_account.employee_addresses.push(employee.key());
-            payroll_account
-                .employee_salaries
-                .push(employee_allocations[&employee.key()])
+            payroll_account.employee_salaries.push(amounts[i]);
         }
 
         Ok(())
@@ -68,7 +61,13 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub employer: Signer<'info>,
 
-    #[account(init, payer = employer, space = 8 + std::mem::size_of::<Organization>(), seeds = [EMPLOYER_TAG, employer.key().as_ref()], bump)]
+    #[account(
+        init, 
+        payer = employer, 
+        space = 8 + std::mem::size_of::<Organization>(), 
+        seeds = [EMPLOYER_TAG, employer.key().as_ref()], 
+        bump
+    )]
     pub employer_account: Box<Account<'info, Organization>>,
 
     pub system_program: Program<'info, System>,
@@ -77,6 +76,9 @@ pub struct Initialize<'info> {
 #[derive(Accounts)]
 #[instruction()]
 pub struct AddEmployees<'info> {
+    #[account(mut)]
+    pub employer: Signer<'info>,
+
     #[account(mut, has_one = employer)]
     pub employer_account: Box<Account<'info, Organization>>,
 
@@ -85,18 +87,20 @@ pub struct AddEmployees<'info> {
         seeds = [EMPLOYEES_TAG, employer.key().as_ref()],
         bump,
         payer = employer,
-        space = std::mem::size_of::<Payroll>() + 8,
+        space = std::mem::size_of::<Payroll>() + (10 * (std::mem::size_of::<Pubkey>() + std::mem::size_of::<u64>())) + 8,
     )]
     pub payroll_account: Box<Account<'info, Payroll>>,
-
-    #[account(mut)]
-    pub employer: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
 
 #[event]
 pub struct MyEvent {
+    pub data: u16,
+}
+
+#[event]
+pub struct MyEventTest {
     pub data: u16,
 }
 
