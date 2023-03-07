@@ -1,5 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { BorshCoder, EventParser, Program, web3 } from "@project-serum/anchor";
+import {
+    Connection,
+    Keypair,
+    SystemProgram,
+    LAMPORTS_PER_SOL,
+    Transaction,
+    sendAndConfirmTransaction,
+} from "@solana/web3.js";
 import { SolearnContract } from "../target/types/solearn_contract";
 
 interface AccountMeta {
@@ -75,6 +83,20 @@ export async function log(tx: string, program: Program<SolearnContract>) {
     const events = eventParser.parseLogs((await txs).meta.logMessages);
     for (let event of events) {
         console.log("------Event-----");
-        console.log(event);
+        console.log({ "name": event.name, "data": Number(event.data?.data) });
     }
+}
+
+export async function airdrop(account: Keypair) {
+    const connection = new Connection(
+        "http://127.0.0.1:8899",
+        "confirmed"
+    );
+
+    const airdropSignature = await connection.requestAirdrop(
+        account.publicKey,
+        LAMPORTS_PER_SOL
+    );
+
+    await connection.confirmTransaction(airdropSignature);
 }

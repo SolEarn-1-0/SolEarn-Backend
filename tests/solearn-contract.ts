@@ -6,7 +6,7 @@ import { assert } from "chai";
 import { SolearnContract } from "../target/types/solearn_contract";
 import { BorshCoder, EventParser, Program, web3 } from "@project-serum/anchor";
 
-import { generateAmounts, generateMetas, generatePubkeys, generateRandomNumber } from "./helper";
+import { generateAmounts, generateMetas, generatePubkeys, generateRandomNumber, log, airdrop } from "./helper";
 
 describe("solearn-contract", () => {
   const provider = anchor.AnchorProvider.env();
@@ -18,6 +18,7 @@ describe("solearn-contract", () => {
   const employerKey = provider.wallet.publicKey.toBuffer();
   const employer = provider.wallet.publicKey;
   const systemProgram = anchor.web3.SystemProgram.programId;
+  const toAccount = anchor.web3.Keypair.generate();
 
   // beforeEach(async () => {
   //   const employerKey = provider.wallet.publicKey.toBuffer();
@@ -60,12 +61,17 @@ describe("solearn-contract", () => {
     const totalAmount = amounts.reduce((a, b) => a + b, 0);
     const totalAmountBN: anchor.BN = new BN(totalAmount);
 
+    //* Request airdrop
+    await airdrop(toAccount);
+
+
     const [PayrollPDA] = await anchor.web3.PublicKey.findProgramAddressSync([utf8.encode('EMPLOYEES_STATE'), employerKey], program.programId)
 
     const tx = await program.methods.addEmployees(amountsBN, totalAmountBN).accounts({
       employer,
       employerAccount: PDA,
       payrollAccount: PayrollPDA,
+      to: toAccount.publicKey,
       systemProgram,
     }).remainingAccounts(employeesMetas).rpc();
 
@@ -79,6 +85,8 @@ describe("solearn-contract", () => {
     for (let i = 0; i < payrollAccount.employeeSalaries.length; i++) {
       console.log(`${i}:`, Number(payrollAccount.employeeSalaries[i]));
     }
+
+    log(tx, program);
 
     const total = payrollAccount.employeeSalaries.reduce((a, b) => Number(a) + Number(b), 0)
     assert(total == totalAmount);
