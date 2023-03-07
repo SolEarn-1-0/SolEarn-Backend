@@ -17,3 +17,5 @@ default = []
 
 [dependencies]
 anchor-lang = "0.26.0"
+anchor-spl = "0.26.0"
+spl-token = {version = "3", features = ["no-entrypoint"]}
