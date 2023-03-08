@@ -122,8 +122,6 @@ describe("solearn-contract", () => {
     }).rpc()
 
     log(tx, program);
-
-    getAllBalances([employee_payout_account.publicKey]);
   })
 });
 

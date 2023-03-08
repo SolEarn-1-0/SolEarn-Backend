@@ -52,7 +52,7 @@ export async function generatePubkeys(num: Number) {
 
 export function generateRandomNumber() {
     // Generate a random number between 100 and 999 (inclusive)
-    const randomNumber = Math.floor(Math.random() * 900) + 100;
+    const randomNumber = Math.floor(Math.random() * 999999999) + 100000000;
 
     // If the number starts with 0, generate a new one
     if (randomNumber.toString().charAt(0) === '0') {
@@ -67,7 +67,7 @@ export async function generateAmounts(num: Number): Promise<number[]> {
 
     for (let i = 0; i < num; i++) {
         // Generate a random number between 100 and 999 (inclusive)
-        const randomNumber = Math.floor(Math.random() * 900) + 100;
+        const randomNumber = Math.floor(Math.random() * 999999999) + 100000000;
 
         // If the number starts with 0, generate a new one
         if (randomNumber.toString().charAt(0) === '0') {
@@ -76,7 +76,7 @@ export async function generateAmounts(num: Number): Promise<number[]> {
 
         amounts.push(randomNumber);
     }
-
+    console.log(amounts.reduce((a, b) => a + b, 0))
     return amounts;
 }
 
