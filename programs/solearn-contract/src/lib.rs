@@ -51,11 +51,11 @@ mod solearn_contract {
         require!(ctx.accounts.employer.is_signer, SolEarnError::NotSigner);
 
         let employer_lamports: u64 = ctx.accounts.employer.lamports();
-        require!(employer_lamports > sol_to_lamports(sol_tokens as f64), SolEarnError::InsufficientSol);
-        // emit!(MyEvent{ data: employer_lamports });
+        require!(employer_lamports > sol_tokens, SolEarnError::InsufficientSol);
+        emit!(MyEvent{ data: employer_lamports });
 
-        // let lmps: u64 = ctx.accounts.payout_account.to_account_info().lamports();
-        // emit!(MyEvent{ data: lmps });
+        let lmps: u64 = ctx.accounts.payout_account.to_account_info().lamports();
+        emit!(MyEvent{ data: lmps });
 
         payroll_account.payroll_total = sol_tokens;
 
@@ -79,11 +79,11 @@ mod solearn_contract {
         }
         
         //---- LOGS ----// 
-        // let lmps_after: u64 = ctx.accounts.payout_account.to_account_info().lamports();
-        // emit!(MyEvent{ data: lmps_after });
+        let lmps_after: u64 = ctx.accounts.payout_account.to_account_info().lamports();
+        emit!(MyEvent{ data: lmps_after });
 
-        // let employer_lamports: u64 = ctx.accounts.employer.lamports();
-        // emit!(MyEvent{ data: employer_lamports });
+        let employer_lamports: u64 = ctx.accounts.employer.lamports();
+        emit!(MyEvent{ data: employer_lamports });
         // ---- LOGS end -----//
 
         Ok(())
@@ -99,9 +99,6 @@ mod solearn_contract {
         require!(payroll_account.employer.key() == ctx.accounts.employer.key(), SolEarnError::Unauthorized);
         require!(payroll_account.employee_addresses.len() as u16 == employer_account.employee_count, SolEarnError::InvalidEmployeePayrollCount);
 
-        let lmps: u64 = ctx.accounts.employee_account.to_account_info().lamports();
-        emit!(MyEvent{ data: lmps });
-
         require!(payroll_account.employee_addresses.contains(&ctx.accounts.employee_account.key()), SolEarnError::NotMember);
 
         let position = payroll_account.employee_addresses.iter().position(|&x| x == ctx.accounts.employee_account.key()).unwrap();
@@ -112,28 +109,28 @@ mod solearn_contract {
         let lmps: u64 = ctx.accounts.employee_account.to_account_info().lamports();
         emit!(MyEvent{ data: lmps });
 
-        // let seeds = vec![bump_seed];
-        // let seeds = vec![b"SOLEARN_PAYOUT_ACCOUNT".as_ref(), seeds.as_slice()];
-        // let seeds = vec![seeds.as_slice()];
-        // let seeds = seeds.as_slice();
+        let seeds = vec![bump_seed];
+        let seeds = vec![b"SOLEARN_PAYOUT_ACCOUNT".as_ref(), seeds.as_slice()];
+        let seeds = vec![seeds.as_slice()];
+        let seeds = seeds.as_slice();
 
-        // let transfer_cpi_context = CpiContext::new_with_signer(
-        //     ctx.accounts.system_program.to_account_info(),
-        //     Transfer {
-        //         from: ctx.accounts.payout_account.to_account_info(),
-        //         to: ctx.accounts.employee_account.to_account_info(),
-        //     },
-        //     seeds
-        // );
-
-        // transfer(transfer_cpi_context, payroll_account.employee_salaries[position]).unwrap();
-        
-        let ix = &system_instruction::transfer(&ctx.accounts.payout_account.key, &ctx.accounts.employee_account.key, payroll_account.employee_salaries[position]);
-        invoke_signed(ix, &[
+        let transfer_cpi_context = CpiContext::new_with_signer(
             ctx.accounts.payout_account.to_account_info(),
-            ctx.accounts.employee_account.to_account_info(),
-            ctx.accounts.system_program.to_account_info()
-        ], &[&[b"SOLEARN_PAYOUT_ACCOUNT", &[bump_seed]]])?;
+            Transfer {
+                from: ctx.accounts.payout_account.to_account_info(),
+                to: ctx.accounts.employee_account.to_account_info(),
+            },
+            seeds
+        );
+
+        transfer(transfer_cpi_context, payroll_account.employee_salaries[position]).unwrap();
+        
+        // let ix = &system_instruction::transfer(&ctx.accounts.payout_account.key, &ctx.accounts.employee_account.key, payroll_account.employee_salaries[position]);
+        // invoke_signed(ix, &[
+        //     ctx.accounts.payout_account.to_account_info(),
+        //     ctx.accounts.employee_account.to_account_info(),
+        //     ctx.accounts.system_program.to_account_info()
+        // ], &[&[b"SOLEARN_PAYOUT_ACCOUNT", &[bump_seed]]])?;
 
         let lmps: u64 = ctx.accounts.payout_account.to_account_info().lamports();
         emit!(MyEvent{ data: lmps });
