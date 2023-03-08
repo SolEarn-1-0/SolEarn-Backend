@@ -14,6 +14,9 @@ pub enum SolEarnError {
     #[msg("Number of employees in Organization dont match number of payout accounts.")]
     InvalidEmployeePayrollCount,
 
+    #[msg("Pubkey not a member of this Organization.")]
+    NotMember,
+
     #[msg("Not Signer! Can't initiate transfer")]
     NotSigner,
 
