@@ -1,7 +1,10 @@
 use anchor_lang::prelude::*;
 
 #[constant]
-pub const EMPLOYER_TAG: &[u8] = b"EMPLOYER_STATE";
+pub const ORGANIZATION_TAG: &[u8] = b"EMPLOYER_STATE";
 
 #[constant]
-pub const EMPLOYEES_TAG: &[u8] = b"EMPLOYEES_STATE";
+pub const PAYROLL_TAG: &[u8] = b"PAYROLL_STATE";
+
+#[constant]
+pub const MASTER_TAG: &[u8] = b"MASTER_STATE";
