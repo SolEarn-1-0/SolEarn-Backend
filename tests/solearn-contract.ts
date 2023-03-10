@@ -23,6 +23,7 @@ import {
 describe("solearn-contract", () => {
   const provider = anchor.AnchorProvider.env();
   // Configure the client to use the local cluster.
+  console.log(provider);
   anchor.setProvider(provider);
 
   const program = anchor.workspace.SolearnContract as Program<SolearnContract>;
