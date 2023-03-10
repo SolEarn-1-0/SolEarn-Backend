@@ -1,20 +1,22 @@
 import * as anchor from "@project-serum/anchor";
 import { TOKEN_PROGRAM_ID, transferInstructionData } from "@solana/spl-token";
 import { AccountMeta, Keypair, PublicKey, Connection } from '@solana/web3.js';
-import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import { BN } from "bn.js";
 import { assert } from "chai";
 import { SolearnContract } from "../target/types/solearn_contract";
-import { BorshCoder, EventParser, Program, web3 } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
 
-import { generateAmounts, generateMetas, generatePubkeys, generateRandomNumber, log, airdrop, getAllBalances, removeBefore } from "./helper";
 import {
-  getKeypair,
-  getProgramKeypair,
+  generateAmounts,
+  generateMetas,
+  log,
+  airdrop,
+  removeBefore
+} from "./helper";
+
+import {
   getMasterAccountAndPDA,
   getPayrollAccountAndPDA,
-  getEmployeeAccountPubkey,
-  getEmployeeAccountKeypair,
   getOrganizationAccountAndPDA,
 } from "./utils";
 
@@ -24,13 +26,10 @@ describe("solearn-contract", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.SolearnContract as Program<SolearnContract>;
-  let PDA: anchor.web3.PublicKey;
 
-  const employerKey = provider.wallet.publicKey.toBuffer();
   const authority_or_ownerAccount = provider.wallet.publicKey;
   const systemProgram = anchor.web3.SystemProgram.programId;
 
-  const program_account = anchor.web3.Keypair.generate();
   const employee_payout_account = anchor.web3.Keypair.generate();
 
 
@@ -46,25 +45,9 @@ describe("solearn-contract", () => {
   let intialPayrollTotal;
   let intialEmployeeSalary;
 
-  // it("Assign authority to PDA take control of employee payout account", async () => {
-  //   const employeeAccountKeypair = getEmployeeAccountKeypair();
-  //   const employeeKeyPair = getKeypair(employeeAccountKeypair);
-  //   const employeeAccountPubkey = getEmployeeAccountPubkey();
-
-  //   await program.methods.assignAuthorityToPda().accounts({
-  //     currentAuthoritySigner: employeeAccountPubkey,
-  //     programPubkey: employeeAccountPubkey,
-  //     tokenProgram: TOKEN_PROGRAM_ID,
-  //   }).signers([employeeKeyPair]).rpc();
-  // })
-
 
   it("initialized!", async () => {
     masterAccount = await getMasterAccountAndPDA(program.programId);
-    // let master = new Keypair({
-    //   publicKey: masterAccount.pubkey.toBuffer(),
-    //   secretKey: masterAccount.seckey
-    // })
 
     // Add your test here.
     const tx = await program.methods.initialize().accounts({
@@ -143,7 +126,7 @@ describe("solearn-contract", () => {
       systemProgram,
     }).signers([employee_payout_account]).rpc()
 
-    log(tx, program);
+    // log(tx, program);
 
     const newCallToPayrollPDA = await program.account.payroll.fetch(payrollAccount.PDA);
     const updatedPayrollSalaryForEmployee = Number(newCallToPayrollPDA.employeeSalaries[3]);

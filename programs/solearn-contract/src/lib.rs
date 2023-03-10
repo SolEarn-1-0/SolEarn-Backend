@@ -1,13 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_lang::{
     system_program::Transfer, 
-    system_program::transfer, 
-    solana_program::native_token::sol_to_lamports,
-    system_program::{assign, create_account},
-    solana_program::{system_instruction, program::invoke_signed}
+    system_program::transfer,   
 };
-use anchor_spl::token::{self, CloseAccount, Burn, Mint, MintTo, SetAuthority, TokenAccount, InitializeAccount};
-use spl_token::instruction::AuthorityType;
 
 use constants::*;
 use errors::*;
@@ -34,7 +29,6 @@ mod solearn_contract {
 
         // Increment last_id in master
         master.last_id += 1;
-
 
         organization_account.organization_id = master.last_id;
         organization_account.owner = ctx.accounts.owner_account.key();
@@ -72,7 +66,8 @@ mod solearn_contract {
         emit!(MyEvent{ data: lmps });
 
         payroll_account.payroll_total = total_sol;
-
+        
+        // ---- Transfer start -----//
         let transfer_cpi_context = CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             Transfer {
@@ -85,7 +80,6 @@ mod solearn_contract {
 
         organization_account.last_payroll_id += 1;
         payroll_account.payroll_id = organization_account.last_payroll_id;
-
         // ---- Transfer end -----//
 
         organization_account.employee_count = employees.len() as u16;
@@ -125,22 +119,6 @@ mod solearn_contract {
         let lmps: u64 = employee_account.to_account_info().lamports();
         emit!(MyEvent{ data: lmps });
 
-        // let seeds = vec![bump_seed];
-        // let seeds = vec![b"SOLEARN_PAYOUT_ACCOUNT".as_ref(), seeds.as_slice()];
-        // let seeds = vec![seeds.as_slice()];
-        // let seeds = seeds.as_slice();
-
-        // let transfer_cpi_context = CpiContext::new_with_signer(
-        //     ctx.accounts.system_program.to_account_info(),
-        //     Transfer {
-        //         from: ctx.accounts.payout_account.to_account_info(),
-        //         to: ctx.accounts.employee_account.to_account_info(),
-        //     },
-        //     seeds
-        // );
-
-        // transfer(transfer_cpi_context, payroll_account.employee_salaries[position]).unwrap();
-
         let salary = payroll_account.employee_salaries[position];
         require!(salary != 0, SolEarnError::SalararyClaim);
 
@@ -153,12 +131,6 @@ mod solearn_contract {
         **payroll_account.to_account_info().try_borrow_mut_lamports().unwrap() -= salary;
         **employee_account.to_account_info().try_borrow_mut_lamports().unwrap() += salary;
         
-        // let ix = &system_instruction::transfer(&ctx.accounts.payout_account.key, &ctx.accounts.employee_account.key, payroll_account.employee_salaries[position]);
-        // invoke_signed(ix, &[
-        //     ctx.accounts.payout_account.to_account_info(),
-        //     ctx.accounts.employee_account.to_account_info(),
-        //     ctx.accounts.system_program.to_account_info()
-        // ], &[&[b"SOLEARN_PAYOUT_ACCOUNT", &[bump_seed]]])?;
 
         let remaining_payroll_balance = payroll_account.payroll_total;
 
