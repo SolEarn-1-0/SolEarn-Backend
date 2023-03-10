@@ -109,15 +109,24 @@ export async function airdrop(account: PublicKey) {
     await connection.confirmTransaction(airdropSignature);
 }
 
-export const getAllBalances = async (publicKeys: PublicKey[]) => {
+export const getAllBalances = async (publicKeys: PublicKey) => {
 
     const connection = new Connection("http://127.0.0.1:8899");
 
-    const pk = new PublicKey(publicKeys[0]);
+    const pk = new PublicKey(publicKeys);
     console.log(pk);
 
     const balance = await connection.getBalance(pk);
     let netBalance = balance;
 
-    console.log(` netBalance = ${netBalance}`);
+    console.log(`netBalance = ${netBalance}`);
 };
+
+export const removeBefore = async (str: string, word: string): Promise<string> => {
+    const index = str.indexOf(word);
+    if (index !== -1) {
+        return str.substring(index + word.length);
+    } else {
+        return str;
+    }
+}
